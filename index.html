@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Romantis - Karena Kamu Cantik</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Signika+Negative:wght@300..700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="dudu.gif">
+  
+<style>
+    body {
+     font-family:'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', "Outfit", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 600; /* Bisa 400, 600, 800, dll */
+  font-style: normal;/* Mengubah font menjadi Comic Sans */
+      background: linear-gradient(135deg, #000000, #000000);
+      color: white;
+      min-height: 100vh;
+      overflow-x: hidden;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .scene-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 2rem;
+      flex-wrap: nowrap;
+    }
+
+    .scene-image {
+      width: 250px;
+      min-width: 150px;
+      max-width: 100%;
+      height: auto;
+      border-radius: 1rem;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+      flex-shrink: 0;
+      object-fit: cover;
+    }
+
+    .lirik {
+      width: 400px;
+      max-width: 100%;
+      font-size: clamp(1rem, 3vw, 1.25rem);
+      line-height: 1.8rem;
+      text-align: left;
+      min-height: 4rem;
+      flex-shrink: 1;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    @media (max-width: 768px) {
+      .scene-container {
+        gap: 1rem;
+        padding: 1rem;
+      }
+      .scene-image {
+        width: 150px;
+      }
+      .lirik {
+        width: 300px;
+      }
+    }
+
+    .fade-up {
+      animation: fadeUp 1s ease forwards;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #sceneBox, #footerNote, #initialLyrics {
+      display: none;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .typing-cursor {
+      display: inline-block;
+      width: 6px;
+      height: 1.8rem;
+      background: #ff69b4;
+      animation: blink 0.5s infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .ripple-container {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5); /* Warna putih dengan transparansi */
+      transform: scale(0);
+      animation: ripple-animation 0.6s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes ripple-animation {
+      to {
+        transform: scale(3); /* Radius efek riak */
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="ripple-container" id="rippleContainer"></div>
+
+  <!-- Audio -->
+  <audio id="lagu">
+    <source src="romansa.mp3" type="audio/mpeg" />
+  </audio>
+
+  <!-- Initial Lyrics Animation -->
+  <div id="initialLyrics" class="hidden w-full max-w-2xl mx-auto text-center mb-8">
+    <p id="typingLyrics" class="text-xl md:text-2xl text-pink-300"></p>
+  </div>
+
+  <!-- GIF Bubu Dudu -->
+
+  <!-- Tombol Mulai -->
+  <div id="tanyaSiap" class="z-10 mb-8">
+    <p class="text-lg text-white font-semibold mb-2">Sudah siap?</p>
+    <button onclick="mulaiLagu(event)" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition">
+      Mulai
+    </button>
+  </div>
+
+  <!-- Scene Container -->
+   <!-- GIF Bubu Dudu -->
+<div id="gifBubuDudu" style="display: none;" class="absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
+  <img src="dudu.gif" alt="Bubu Dudu" width="120" height="120">
+</div>
+
+  <div id="sceneBox" class="w-full max-w-5xl mx-auto"></div>
+
+  <!-- Footer -->
+  <div id="footerNote" class="text-gray-400 mt-12 text-sm z-10">
+    Dibuat dengan ❤️ untuk seseorang yang spesial
+  </div>
+
+  <script>
+    const audio = document.getElementById('lagu');
+    const tanyaSiap = document.getElementById('tanyaSiap');
+    const sceneBox = document.getElementById('sceneBox');
+    const footerNote = document.getElementById('footerNote');
+
+    const scenes = [
+      {
+        posisi: 'kiri',
+        paragraphs: [
+          { text: 'karna kamu cantik 🫶', delay: 1500 },
+          { text: 'kan kuberi segalanya apa yang kupunya❤️', delay: 800 }
+        ],
+        gambar: 'gambar1.jpeg',
+        sceneDelay: 300
+      },
+      {
+        posisi: 'kanan',
+        paragraphs: [
+          { text: 'dan hatimu baik.', delay: 1600 },
+          { text: 'sempurnalah duniaku saat kau disisiku🤗', delay: 1200 }
+        ],
+        gambar: 'gambar2.jpeg',
+        sceneDelay: 1000
+      }
+    ];
+
+    const introLyrics = [
+      "kau mencuuuuri...",
+      "hatiku mimpiku semua rinduku"
+    ];
+
+    // Array untuk jeda antar lirik
+    const delaysBetweenIntroLyrics = [
+      2500, // Jeda setelah lirik pertama
+      1400  // Jeda setelah lirik kedua
+    ];
+
+    const typingSpeed = 80; // Kecepatan pengetikan dalam milidetik
+    const preIntroDelay = 500; // Jeda sebelum lirik intro dimuat (2 detik)
+
+    function mulaiLagu(event) {
+      tanyaSiap.style.display = 'none';
+      const initialLyrics = document.getElementById('initialLyrics');
+      initialLyrics.style.display = 'block';
+      
+      audio.loop = false;
+      audio.volume = 1;
+      audio.play().catch(() => alert("Klik untuk mulai audio jika tidak otomatis."));
+
+      // Tambahkan efek riak
+      createRippleInElement(event, event.target);
+
+      // Tambahkan jeda sebelum lirik intro dimuat
+      setTimeout(() => {
+        // Tampilkan lirik awal setelah jeda
+        tampilkanIntroLyrics(0, () => {
+          initialLyrics.style.display = 'none';
+          sceneBox.style.display = 'block';
+          document.getElementById('gifBubuDudu').style.display = 'block';
+          tampilkanScene(0);
+        });
+      }, preIntroDelay); // Menggunakan preIntroDelay untuk jeda
+    }
+
+    function tampilkanIntroLyrics(index, callback) {
+      if (index >= introLyrics.length) {
+        callback();
+        return;
+      }
+      
+      const typingLyrics = document.getElementById('typingLyrics');
+      typingLyrics.innerHTML = '';
+      
+      let fullText = introLyrics[index];
+      let i = 0;
+      const typingInterval = setInterval(() => {
+        if (i < fullText.length) {
+          typingLyrics.innerHTML = fullText.substring(0, i + 1) + 
+                                  '<span class="typing-cursor"></span>';
+          i++;
+        } else {
+          clearInterval(typingInterval);
+          setTimeout(() => {
+            tampilkanIntroLyrics(index + 1, callback);
+          }, delaysBetweenIntroLyrics[index]); // Menggunakan jeda yang berbeda untuk setiap lirik
+        }
+      }, typingSpeed); // Kecepatan pengetikan
+    }
+
+    function tampilkanScene(index) {
+      if (index >= scenes.length) {
+        footerNote.style.display = 'block';
+        return;
+      }
+
+      const scene = scenes[index];
+      sceneBox.innerHTML = '';
+
+      const container = document.createElement('div');
+      container.className = 'scene-container fade-up';
+
+      const lirikDiv = document.createElement('div');
+      lirikDiv.className = 'lirik text-white';
+      container.appendChild(lirikDiv);
+
+      const imgElement = document.createElement('img');
+      imgElement.src = scene.gambar;
+      imgElement.alt = 'Gambar';
+      imgElement.className = 'scene-image';
+
+      if (scene.posisi === 'kiri') {
+        container.insertBefore(imgElement, lirikDiv);
+      } else {
+        container.appendChild(imgElement);
+      }
+
+      sceneBox.appendChild(container);
+
+      tampilkanLirikPerHuruf(scene.paragraphs, lirikDiv, () => {
+        setTimeout(() => {
+          tampilkanScene(index + 1);
+        }, scene.sceneDelay);
+      });
+    }
+
+    function tampilkanLirikPerHuruf(paragraphs, targetEl, callback) {
+      targetEl.innerHTML = '';
+      let paragraphIndex = 0;
+      
+      function showNextParagraph() {
+        if (paragraphIndex >= paragraphs.length) {
+          callback();
+          return;
+        }
+
+        const p = document.createElement('p');
+        p.className = 'mb-4'; // Add margin below each paragraph
+        targetEl.appendChild(p);
+
+        const paragraph = paragraphs[paragraphIndex];
+        let i = 0;
+        const interval = setInterval(() => {
+          if (i < paragraph.text.length) {
+            p.textContent = paragraph.text.substring(0, i + 1);
+            i++;
+          } else {
+            clearInterval(interval);
+            paragraphIndex++;
+            setTimeout(showNextParagraph, paragraph.delay);
+          }
+        }, typingSpeed);
+      }
+
+      showNextParagraph();
+    }
+
+    function createRippleInElement(event, element) {
+      const rippleContainer = document.getElementById('rippleContainer');
+      const rect = element.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      const ripple = document.createElement('div');
+      ripple.className = 'ripple';
+      ripple.style.left = `${x}px`;
+      ripple.style.top = `${y}px`;
+      ripple.style.width = ripple.style.height = `${element.offsetWidth * 1.5}px`; // Lebih besar agar efek meluas
+      rippleContainer.appendChild(ripple);
+
+      setTimeout(() => {
+        ripple.remove();
+      }, 600); // Durasi efek riak
+    }
+
+    // Tambahkan ripple saat tombol diklik
+    document.querySelector("#tanyaSiap button").addEventListener("click", (e) => {
+      createRippleInElement(e, e.target);
+    });
+  </script>
+</body>
+</html>
